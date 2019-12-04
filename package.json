@@ -7,9 +7,9 @@
     },
     "license": "MIT",
     "bugs": {
-      "url": "https://github.com/speedcontrol/speedcontrol-srcomtracker/issues"
+      "url": "https://github.com/effintoast/mgsr-obs/issues"
     },
-    "homepage": "https://github.com/speedcontrol/speedcontrol-srcomtracker#readme",
+    "homepage": "https://github.com/effintoast/mgsr-obs/",
     "nodecg": {
       "compatibleRange": "^1.0.0",
       "dashboardPanels": [
