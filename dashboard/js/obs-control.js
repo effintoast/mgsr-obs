@@ -1,3 +1,22 @@
+//source: https://stackoverflow.com/questions/846221/logarithmic-slider
+function obs_logslider(position) {
+    var minp = 0;
+    var maxp = 100;
+    var minv = Math.log(100);
+    var maxv = Math.log(10000000);
+    var scale = (maxv-minv) / (maxp-minp);
+    return Math.exp(minv + scale*(position-minp));
+}
+
+function obs_logslider_rev(value) {
+    var minp = 0;
+    var maxp = 100;
+    var minv = Math.log(100);
+    var maxv = Math.log(10000000);
+    var scale = (maxv-minv) / (maxp-minp);
+    return minp + (Math.log(value)-minv)/scale;
+}
+
 $(document).ready(function(){
 
     
@@ -112,7 +131,7 @@ $(document).ready(function(){
                 clean_name = clean_name.replace(' ','_');
                 $('.obs--scene').removeClass('active');
                 $('.obs--scene-'+clean_name).addClass('active');
-
+                console.log(data.sources);
                 data.sources.forEach(source => {
 
                     if(source.render == false || obs_helper.audio_sources.indexOf(source.type) < 0){
@@ -126,16 +145,17 @@ $(document).ready(function(){
                     $('.obs--audio-list').append('<div class="obs--audio-source">'+source.name+' <div class="obs--audio-slider"></div> <input type="hidden" class="obs--audio-value" data-source="'+source.name+'" value="'+source.volume+'"></div>');
                 });
                 $('.obs--audio-value').each(function(i,v){
-                    var cval = $(this).val();
+                    //idk...it works
+                    var cval = obs_logslider_rev(parseFloat($(this).val()) * 1000000) + 20.00000021942403;
                     $(this).closest('.obs--audio-source').find('.obs--audio-slider').slider({
                         min:0,
-                        max:1,
-                        step:.001,
+                        max:100,
+                        step:1,
                         value: cval,
                         orientation: "horizontal",
                         range: "min",
-                        animate: true,
                         slide: function( event, ui ) {
+                            ui.value = obs_logslider(ui.value) * .0000001;
                             $(this).closest('.obs--audio-source').find('.obs--audio-value').val(ui.value).trigger('change');
                         }
                     });
