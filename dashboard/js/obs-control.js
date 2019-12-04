@@ -1,8 +1,22 @@
-
-
-function scaleBetween(num, min, max, scaledMin, scaledMax){
-    return (scaledMax-scaledMin)*(num-min)/(max-min)+scaledMin;
+//source: https://stackoverflow.com/questions/846221/logarithmic-slider
+function obs_logslider(position) {
+    var minp = 0;
+    var maxp = 100;
+    var minv = Math.log(100);
+    var maxv = Math.log(10000000);
+    var scale = (maxv-minv) / (maxp-minp);
+    return Math.exp(minv + scale*(position-minp));
 }
+
+function obs_logslider_rev(value) {
+    var minp = 0;
+    var maxp = 100;
+    var minv = Math.log(100);
+    var maxv = Math.log(10000000);
+    var scale = (maxv-minv) / (maxp-minp);
+    return minp + (Math.log(value)-minv)/scale;
+}
+
 
 
 $(document).ready(function(){
@@ -62,14 +76,20 @@ $(document).ready(function(){
 
         toggle_recording: function(e){
             e.preventDefault();
-            if(confirm('Are you SURE you want to stop RECORDING?')){
+            if($('.obs--recording-status').hasClass('active') && confirm('Are you SURE you want to stop RECORDING?')){
+                obs.send('StartStopRecording');
+            }
+            else if(!$('.obs--recording-status').hasClass('active')){
                 obs.send('StartStopRecording');
             }
         },
 
         toggle_streaming: function(e){
             e.preventDefault();
-            if(confirm('Are you SURE you want to stop STREAMING?')){
+            if($('.obs--streaming-status').hasClass('active') && confirm('Are you SURE you want to stop STREAMING?')){
+                obs.send('StartStopStreaming');
+            }
+            else if(!$('.obs--streaming-status').hasClass('active')){
                 obs.send('StartStopStreaming');
             }
         },
@@ -137,47 +157,16 @@ $(document).ready(function(){
                     $('.obs--audio-list').append('<div class="obs--audio-source">'+source.name+' <div class="obs--audio-slider"></div> <input type="hidden" class="obs--audio-value" data-source="'+source.name+'" value="'+source.volume+'"></div>');
                 });
                 $('.obs--audio-value').each(function(i,v){
-                    var cval = $(this).val();
+                    var cval = obs_logslider_rev(parseFloat($(this).val()) * 1000000) + 20.00000021942403;
                     $(this).closest('.obs--audio-source').find('.obs--audio-slider').slider({
                         min:0,
-                        max:1,
-                        step:.01,
+                        max:100,
+                        step:1,
                         value: cval,
                         orientation: "horizontal",
                         range: "min",
                         slide: function( event, ui ) {
-                            if(ui.value <= .1){
-                                ui.value = scaleBetween(ui.value, 0, .1, 0, .0001);
-                            }
-                            else if(ui.value <= .2){
-                                ui.value = scaleBetween(ui.value, .1, .2, .0001, .0003162);
-                            }
-                            else if(ui.value <= .3){
-                                ui.value = scaleBetween(ui.value, .2, .3, .0003162, .001);
-                            }
-                            else if(ui.value <= .4){
-                                ui.value = scaleBetween(ui.value, .3, .4, .001, .003162);
-                            }
-                            else if(ui.value <= .5){
-                                ui.value = scaleBetween(ui.value, .4, .5, .003162, .01);
-                            }
-                            else if(ui.value <= .6){
-                                ui.value = scaleBetween(ui.value, .5, .6, .01, .3162);
-                            }
-                            else if(ui.value <= .7){
-                                ui.value = scaleBetween(ui.value, .6, .7, .3162, .501);
-                            }
-                            else if(ui.value <= .8){
-                                ui.value = scaleBetween(ui.value, .7, .8, .501, .708);
-                            }
-                            else if(ui.value <= .9){
-                                ui.value = scaleBetween(ui.value, .8, .9, .708, .891);
-                            }
-                            else{
-                                ui.value = scaleBetween(ui.value, .9, 1, .891, 1);
-                            }
-
-
+                            ui.value = obs_logslider(ui.value) * .0000001;
                             $(this).closest('.obs--audio-source').find('.obs--audio-value').val(ui.value).trigger('change');
                         }
                     });
