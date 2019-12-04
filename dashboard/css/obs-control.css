@@ -1,0 +1,46 @@
+.obs--scene {
+    width:33%;
+    float:left;
+}
+.obs--scene .inner {
+    text-align:center;
+    padding:10px;
+    margin:2px;
+    height:100px;
+    background:#000;
+    color:#fff;
+    cursor:pointer;
+}
+
+.obs--scene .inner span {
+    padding:40px 0;
+    display:inline-block;
+}
+
+.obs--scene.active .inner{
+    background:#ccc;
+    color:#555;
+}
+
+.obs--audio-source {
+    font-weight:bold;
+    font-size:18px;
+    margin-top:15px;
+}
+.obs--audio-slider {
+    margin:5px 25px;
+}
+
+.obs--recording-status, .obs--streaming-status {
+    height:18px;
+    width:18px;
+    display:inline-block;
+    position:relative;
+    top:2px;
+    border-radius:25px;
+    background:#ccc;
+}
+
+.obs--recording-status.active, .obs--streaming-status.active {
+    background:green;
+}

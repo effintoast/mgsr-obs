@@ -1,0 +1,26 @@
+{
+    "name": "mgsr-obs",
+    "version": "1.0.0",
+    "author": "effintoast",
+    "dependencies": {
+      "obs-websocket-js": "^3.1.0"
+    },
+    "license": "MIT",
+    "bugs": {
+      "url": "https://github.com/speedcontrol/speedcontrol-srcomtracker/issues"
+    },
+    "homepage": "https://github.com/speedcontrol/speedcontrol-srcomtracker#readme",
+    "nodecg": {
+      "compatibleRange": "^1.0.0",
+      "dashboardPanels": [
+            {
+            "name": "obs-control",
+            "title": "OBS Control",
+            "file": "obs-control.html",
+            "width": 3,
+            "height": 4
+            }
+        ]
+    }
+  }
+  
