@@ -190,17 +190,23 @@ $(document).ready(function(){
                     });
                 });
                 $('.obs--audio-value').each(function(i,v){
-                    //var cval = 20 * Math.log10(parseFloat($(this).val()) / 1);
-                    var cval = $(this).val();
+                    var cval = 20 * Math.log10(parseFloat($(this).val()) / 1);
+                    //var cval = $(this).val();
+                    if(cval < -20){
+                        cval = -20 * ((-cval-20) / 80 ) -20;
+                    }
                     $(this).closest('.obs--audio-source').find('.obs--audio-slider').slider({
-                        min:0,
-                        max:1,
-                        step:.001,
+                        min:-40,
+                        max:0,
+                        step:.2,
                         value: cval,
                         orientation: "horizontal",
                         range: "min",
                         slide: function( event, ui ) {
-                            //ui.value = Math.pow(10, (ui.value/20));
+                            if(ui.value < -20){
+                                ui.value = -80 * ((-ui.value-20) / 20 ) - 20;
+                            }
+                            ui.value = Math.pow(10, (ui.value/20));
                             $(this).closest('.obs--audio-source').find('.obs--audio-value').val(ui.value).trigger('change');
                         }
                     });
@@ -211,7 +217,11 @@ $(document).ready(function(){
 
         source_audio_change: function(d){
             d.sourceName = obs_helper.slug_gen(d.sourceName);
-            $('.obs--audio-source-'+d.sourceName).find('.obs--audio-slider').slider('value',d.volume);
+            var cval = 20 * Math.log10(parseFloat(d.volume) / 1);
+            if(cval < -20){
+                cval = -20 * ((-cval-20) / 80 ) -20;
+            }
+            $('.obs--audio-source-'+d.sourceName).find('.obs--audio-slider').slider('value',cval);
         },
 
         source_audio_mute: function(d){
