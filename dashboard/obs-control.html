@@ -7,20 +7,22 @@
 	<link href="css/obs-control.css" rel="stylesheet">
 	<link href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css" rel="stylesheet">
 	<link href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/themes/ui-darkness/theme.min.css" rel="stylesheet">
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css" rel="stylesheet">
+	
 	
 <body>
 	<form method="post">
-		<input type="text" class="obs--host" placeholder="HOST:PORT">
-		<input type="password" class="obs--password" placeholder="PASSWORD (leave blank if none)">
-		<button class="obs--connect-btn">Connect</button>
+		<input type="text" class="obs--host  obs--input-box" placeholder="HOST:PORT">
+		<input type="password" class="obs--password obs--input-box" placeholder="PASSWORD (leave blank if none)">
+		<button class="obs--connect-btn ui-button ui-corner-all">Connect</button>
 		<span class="obs--status"></span>
 		<hr/>
 		<div class="obs--main" style="display:none;">
 			<p>Recording <span class="obs--recording-status"></span> Streaming <span class="obs--streaming-status"></span></p>
-			<p><button class="obs--start-stop-recording">Start/Stop Recording</button> <button class="obs--start-stop-streaming">Start/Stop Streaming</button></p>
-			<h3>SCENE SELECTION</h3>
+			<p><button class="obs--start-stop-recording ui-button ui-corner-all">Start/Stop Recording</button> <button class="obs--start-stop-streaming ui-button ui-corner-all">Start/Stop Streaming</button></p>
+			<h3 style="margin-bottom:5px;">SCENE SELECTION</h3>
 			<div class="obs--scene-list" style="height: 400px; overflow-y: scroll; overflow-x:hidden;"></div>
-			<h3>AUDIO</h3>
+			<h3 style="margin-bottom:5px;">AUDIO</h3>
 			<div class="obs--audio-list" style="max-height: 400px; overflow-y: scroll;"></div>
 		</div>
 	</form>

@@ -1,28 +1,13 @@
-//source: https://stackoverflow.com/questions/846221/logarithmic-slider
-function obs_logslider(position) {
-    var minp = 0;
-    var maxp = 100;
-    var minv = Math.log(100);
-    var maxv = Math.log(10000000);
-    var scale = (maxv-minv) / (maxp-minp);
-    return Math.exp(minv + scale*(position-minp));
-}
-
-function obs_logslider_rev(value) {
-    var minp = 0;
-    var maxp = 100;
-    var minv = Math.log(100);
-    var maxv = Math.log(10000000);
-    var scale = (maxv-minv) / (maxp-minp);
-    return minp + (Math.log(value)-minv)/scale;
-}
-
-
 
 $(document).ready(function(){
 
-    
     const obs = new OBSWebSocket();
+    
+    //localhost:4444
+    var obs_host = 'localhost:4444';
+    var obs_password = '';
+    var obs_autoconnect = false;
+    var obs_hide_host_fields = false;
 
     var obs_helper = {
 
@@ -30,11 +15,35 @@ $(document).ready(function(){
 
         hooks: function(){
             
+            //set host and password fields
+            if(obs_host != ''){
+                $('.obs--host').val(obs_host);
+            }
+            if(obs_password != ''){
+                $('.obs--password').val(obs_password);
+            }
+            
+            
+            if(obs_hide_host_fields){
+                $('.obs--host').hide();
+                $('.obs--password').hide();
+            }
+
+            //auto connect
+            if(obs_host != '' && obs_autoconnect){
+                obs_helper.set_status('connecting...');
+                obs.connect({
+                    address: $('.obs--host').val(),
+                    password: $('.obs--password').val()
+                });
+            }
+
             $('.obs--connect-btn').click(obs_helper.connect_btn);
             $(document).on('click', '.obs--scene', obs_helper.scene_btn);
             $(document).on('change', '.obs--audio-value', obs_helper.audio_change_btn);
             $(document).on('click', '.obs--start-stop-recording', obs_helper.toggle_recording);
             $(document).on('click', '.obs--start-stop-streaming', obs_helper.toggle_streaming);
+            $(document).on('click', '.obs--audio-mute', obs_helper.toggle_mute_btn);
 
             /* OBS Callbacks */
             obs.on('ConnectionOpened', obs_helper.connection_opened);
@@ -50,7 +59,6 @@ $(document).ready(function(){
         },
 
         stream_status: function(d){
-            console.log(d);
             if(d.streaming){
                 $('.obs--streaming-status').addClass('active');
             }
@@ -72,6 +80,18 @@ $(document).ready(function(){
                 address: $('.obs--host').val(),
                 password: $('.obs--password').val()
             });
+        },
+
+        toggle_mute_btn: function(e){
+            e.preventDefault();
+            if($(this).hasClass('fa-volume-mute')){
+                obs.send('SetMute', { source: $(this).closest('.obs--audio-source').data('source-name'), mute: false});
+                $(this).removeClass('fa-volume-mute').addClass('fa-volume-up');
+            }
+            else{
+                obs.send('SetMute', { source: $(this).closest('.obs--audio-source').data('source-name'), mute: true});
+                $(this).removeClass('fa-volume-up').addClass('fa-volume-mute');
+            }
         },
 
         toggle_recording: function(e){
@@ -106,8 +126,7 @@ $(document).ready(function(){
                 const scene_list_wrapper = $('.obs--scene-list');
                 scene_list_wrapper.html('');
                 data.scenes.forEach(scene => {
-                    var clean_name = scene.name;
-                    clean_name = clean_name.replace(' ','_');
+                    var clean_name = obs_helper.slug_gen(scene.name);
                     scene_list_wrapper.append('<div class="obs--scene obs--scene-'+clean_name+'" data-sname="'+scene.name+'"><div class="inner"><span>'+scene.name+'</span></div></div>');
                 });
               });
@@ -139,11 +158,11 @@ $(document).ready(function(){
                 $('.obs--audio-list').html('');
 
                 //clean up
-                var clean_name = data.name;
-                clean_name = clean_name.replace(' ','_');
+                var clean_name = obs_helper.slug_gen(data.name);
+
                 $('.obs--scene').removeClass('active');
                 $('.obs--scene-'+clean_name).addClass('active');
-                console.log(data.sources);
+
                 data.sources.forEach(source => {
 
                     if(source.render == false || obs_helper.audio_sources.indexOf(source.type) < 0){
@@ -154,19 +173,31 @@ $(document).ready(function(){
                         return;
                     }
 
-                    $('.obs--audio-list').append('<div class="obs--audio-source">'+source.name+' <div class="obs--audio-slider"></div> <input type="hidden" class="obs--audio-value" data-source="'+source.name+'" value="'+source.volume+'"></div>');
+
+                    
+                    $('.obs--audio-list').append('<div class="obs--audio-source obs--audio-source-'+obs_helper.slug_gen(source.name)+'" data-source-name="'+source.name+'">'+source.name+' <span class="obs--audio-mute fas fa-volume-up" style="display:none;"></span> <div class="obs--audio-slider"></div> <input type="hidden" class="obs--audio-value" data-source="'+source.name+'" value="'+source.volume+'"></div>');
+
+                    obs.send('GetMute',{source: source.name}).then(mdata => {
+                        var clean_name = obs_helper.slug_gen(mdata.name);
+                        if(mdata.muted){
+                            $('.obs--audio-source-'+clean_name).find('.obs--audio-mute').removeClass('fa-volume-up').addClass('fa-volume-mute').show();
+                        }
+                        else{
+                            $('.obs--audio-source-'+clean_name).find('.obs--audio-mute').removeClass('fa-volume-mute').addClass('fa-volume-up').show();
+                        }
+                    });
                 });
                 $('.obs--audio-value').each(function(i,v){
-                    var cval = obs_logslider_rev(parseFloat($(this).val()) * 1000000) + 20.00000021942403;
+                    var cval = 20 * Math.log10(parseFloat($(this).val()) / 1);
                     $(this).closest('.obs--audio-source').find('.obs--audio-slider').slider({
-                        min:0,
-                        max:100,
-                        step:1,
+                        min:-100,
+                        max:0,
+                        step:.5,
                         value: cval,
                         orientation: "horizontal",
                         range: "min",
                         slide: function( event, ui ) {
-                            ui.value = obs_logslider(ui.value) * .0000001;
+                            ui.value = Math.pow(10, (ui.value/20));
                             $(this).closest('.obs--audio-source').find('.obs--audio-value').val(ui.value).trigger('change');
                         }
                     });
@@ -220,8 +251,13 @@ $(document).ready(function(){
 
         auth_fail: function(d){
             obs_helper.set_status('auth fail');
-        }
+        },
 
+        slug_gen: function(d){
+            d = d.replace(/[^a-zA-Z0-9 ]/g, "");
+            d = d.replace(/ /g, '_');
+            return d;
+        }
     }
 
     obs_helper.hooks();
