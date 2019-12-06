@@ -52,6 +52,8 @@ $(document).ready(function(){
             obs.on('AuthenticationSuccess', obs_helper.auth_pass);
             obs.on('SwitchScenes', obs_helper.scene_switched);
             obs.on('Heartbeat', obs_helper.stream_status);
+            obs.on('SourceVolumeChanged', obs_helper.source_audio_change);
+            obs.on('SourceMuteStateChanged', obs_helper.source_audio_mute);
         },
 
         set_status: function(status){
@@ -205,6 +207,20 @@ $(document).ready(function(){
                 });
 
             });
+        },
+
+        source_audio_change: function(d){
+            d.sourceName = obs_helper.slug_gen(d.sourceName);
+            $('.obs--audio-source-'+d.sourceName).find('.obs--audio-slider').slider('value',d.volume);
+        },
+
+        source_audio_mute: function(d){
+            d.sourceName = obs_helper.slug_gen(d.sourceName);
+            if(d.muted){
+                $('.obs--audio-source-'+d.sourceName).find('.obs--audio-mute').removeClass('fa-volume-up').addClass('fa-volume-mute');
+            }else{
+                $('.obs--audio-source-'+d.sourceName).find('.obs--audio-mute').removeClass('fa-volume-mute').addClass('fa-volume-up');
+            }
         },
 
         set_source_volume: function(source, vol){
