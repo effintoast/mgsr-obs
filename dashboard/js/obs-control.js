@@ -188,16 +188,17 @@ $(document).ready(function(){
                     });
                 });
                 $('.obs--audio-value').each(function(i,v){
-                    var cval = 20 * Math.log10(parseFloat($(this).val()) / 1);
+                    //var cval = 20 * Math.log10(parseFloat($(this).val()) / 1);
+                    var cval = $(this).val();
                     $(this).closest('.obs--audio-source').find('.obs--audio-slider').slider({
-                        min:-100,
-                        max:0,
-                        step:.5,
+                        min:0,
+                        max:1,
+                        step:.001,
                         value: cval,
                         orientation: "horizontal",
                         range: "min",
                         slide: function( event, ui ) {
-                            ui.value = Math.pow(10, (ui.value/20));
+                            //ui.value = Math.pow(10, (ui.value/20));
                             $(this).closest('.obs--audio-source').find('.obs--audio-value').val(ui.value).trigger('change');
                         }
                     });
