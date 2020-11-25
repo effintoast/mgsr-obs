@@ -9,6 +9,20 @@ $(document).ready(function(){
     var obs_autoconnect = false;
     var obs_hide_host_fields = false;
 
+    var player_sources = [
+        {source_name: "P1", display_name: "Player 1"},
+        {source_name: "P2", display_name: "Player 2"},
+        {source_name: "P3", display_name: "Player 3"},
+        {source_name: "P4", display_name: "Player 4"}
+    ];
+
+    var player_sources_values = [
+        {source_url: "rtmp://rtmp.metalgearspeedrunners.com", display_name: "NA RTMP"},
+        {source_url: "rtmp://eu-rtmp.metalgearspeedrunners.com", display_name: "EU RTMP"},
+        {source_url: "rtmp://oce-rtmp.metalgearspeedrunners.com", display_name: "OCE RTMP"}
+    ];
+
+
     var obs_helper = {
 
         audio_sources: [],
@@ -54,6 +68,79 @@ $(document).ready(function(){
             obs.on('Heartbeat', obs_helper.stream_status);
             obs.on('SourceVolumeChanged', obs_helper.source_audio_change);
             obs.on('SourceMuteStateChanged', obs_helper.source_audio_mute);
+        },
+
+        main_show_callback: function(){
+
+            obs_helper.player_source_load();
+           
+        },
+
+        player_source_load: function(){
+            /*Object
+            message-id: "4"
+            messageId: "4"
+            sourceName: "P1"
+            sourceSettings:
+            input: ""
+            is_local_file: false
+            __proto__: Object
+            sourceType: "ffmpeg_source"
+            status: "ok"
+            __proto__: Object*/
+            var tmp_html = '';
+
+            //setup reference dropdown
+            var tmp_dropdown = '';
+            tmp_dropdown += '<select class="obs--update-source-select" data-source="{source}">';
+            tmp_dropdown += '<option value="">--</option>';
+            $.each(player_sources_values, function(i,v){
+                tmp_dropdown += '<option value="'+v.source_url+'">'+v.display_name+'</option>';
+            });
+            tmp_dropdown += '</select>';
+
+            
+            $.each(player_sources, function(i,v){
+                tmp_html += '<h4 style="margin-bottom:5px;">'+v.display_name+'</h4>';
+                tmp_html += tmp_dropdown.replace('{source}', v.source_name);
+            });
+
+
+            $('.obs--source-settings').html(tmp_html);
+
+            obs_helper.player_source_refresh_selected();
+
+            $(document).on('change', '.obs--update-source-select', obs_helper.player_source_update_input);
+            
+        },
+
+        player_source_update_input: function(e){
+            e.preventDefault();
+            var tmp_src = $(this).data('source');
+            var tmp_input = $(this).val();
+            if(tmp_src != ''){
+                obs.send('SetSourceSettings', {
+                    'sourceName': tmp_src,
+                    'sourceSettings': {input: tmp_input}
+                }).then(function(data){
+                    //console.log(data);
+                });
+            }
+        },
+
+        player_source_refresh_selected: function(){
+            $('.obs--update-source-select').each(function(i,v){
+                var tmp_src = $(this).data('source');
+                var tmp_element = $(this);
+                obs.send('GetSourceSettings', {
+                    'sourceName': tmp_src,
+                }).then(function(data){
+                    try {
+                        tmp_element.val(data.sourceSettings.input);
+                    }
+                    catch(e) {}
+                });
+            });
         },
 
         set_status: function(status){
@@ -274,6 +361,7 @@ $(document).ready(function(){
             obs_helper.get_sources();
             obs.send('SetHeartbeat', { 'enable': true });
             $('.obs--main').show();
+            obs_helper.main_show_callback();
         },
 
         auth_fail: function(d){
