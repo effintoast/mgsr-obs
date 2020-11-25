@@ -10,16 +10,16 @@ $(document).ready(function(){
     var obs_hide_host_fields = false;
 
     var player_sources = [
-        {source_name: "P1", display_name: "Player 1"},
-        {source_name: "P2", display_name: "Player 2"},
-        {source_name: "P3", display_name: "Player 3"},
-        {source_name: "P4", display_name: "Player 4"}
+        {source_name: "P1", display_name: "Player 1", runner_slug: 'mgsr-1'},
+        {source_name: "P2", display_name: "Player 2", runner_slug: 'mgsr-2'},
+        {source_name: "P3", display_name: "Player 3", runner_slug: 'mgsr-3'},
+        {source_name: "P4", display_name: "Player 4", runner_slug: 'mgsr-4'}
     ];
 
     var player_sources_values = [
-        {source_url: "rtmp://rtmp.metalgearspeedrunners.com", display_name: "NA RTMP"},
-        {source_url: "rtmp://eu-rtmp.metalgearspeedrunners.com", display_name: "EU RTMP"},
-        {source_url: "rtmp://oce-rtmp.metalgearspeedrunners.com", display_name: "OCE RTMP"}
+        {source_url: "rtmp://rtmp.metalgearspeedrunners.com/runners/", display_name: "NA RTMP"},
+        {source_url: "rtmp://eu-rtmp.metalgearspeedrunners.com/runners/", display_name: "EU RTMP"},
+        {source_url: "rtmp://oce-rtmp.metalgearspeedrunners.com/runners/", display_name: "OCE RTMP"}
     ];
 
 
@@ -95,14 +95,19 @@ $(document).ready(function(){
             tmp_dropdown += '<select class="obs--update-source-select" data-source="{source}">';
             tmp_dropdown += '<option value="">--</option>';
             $.each(player_sources_values, function(i,v){
-                tmp_dropdown += '<option value="'+v.source_url+'">'+v.display_name+'</option>';
+                tmp_dropdown += '<option value="'+v.source_url+'{slug}" data-og="'+v.source_url+'">'+v.display_name+'</option>';
             });
             tmp_dropdown += '</select>';
 
             
             $.each(player_sources, function(i,v){
-                tmp_html += '<h4 style="margin-bottom:5px;">'+v.display_name+'</h4>';
-                tmp_html += tmp_dropdown.replace('{source}', v.source_name);
+                tmp_html += '<div class="clr">';
+                    tmp_html += '<h4 style="margin-bottom:5px;clear:both;">'+v.display_name+'</h4>';
+                    tmp_html += '<div class="row">';
+                        tmp_html += '<div class="col-xs-6"><label>Region</label><br>'+tmp_dropdown.replace('{source}', v.source_name).replace(/{slug}/g, v.runner_slug)+'</div>';
+                        tmp_html += '<div class="col-xs-6"><label>Slug</label><br><input class="obs--runner-slug" value="'+v.runner_slug+'"></div>';
+                    tmp_html += '</div>';
+                tmp_html += '</div>';
             });
 
 
@@ -111,7 +116,21 @@ $(document).ready(function(){
             obs_helper.player_source_refresh_selected();
 
             $(document).on('change', '.obs--update-source-select', obs_helper.player_source_update_input);
-            
+            $(document).on('keyup', '.obs--runner-slug', obs_helper.player_source_update_slug);
+        },
+
+        player_source_update_slug: function(e){
+            var tmp_slug = $(this).val();
+            var tmp_element = $(this).closest('.row').find('.obs--update-source-select');
+            tmp_element.find('option').each(function(i,v){
+                var tmp_og = $(this).data('og');
+                if(tmp_og != undefined){
+                    $(this).val(tmp_og+tmp_slug);
+                }
+                
+            });
+            tmp_element.trigger('change');
+            obs_helper.player_source_refresh_selected();
         },
 
         player_source_update_input: function(e){
