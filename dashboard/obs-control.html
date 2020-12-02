@@ -27,12 +27,48 @@
     -moz-box-sizing: border-box;
     box-sizing: border-box;
 		}
+		.col-xs-4 {
+			width: 33.3%;
+			float:left;
+			position: relative;
+			min-height: 1px;
+			padding-right: 15px;
+			padding-left: 15px;
+			-webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+		}
 		.clr:after {
   content: "";
   display: table;
   clear: both;
 }
 
+.obs--runner-actions {
+	float:right;
+}
+
+.obs--runner-actions a {
+	font-size:14px;
+}
+
+.obs--runner-visibility {
+	display:inline-block;
+}
+.obs--runner-visibility a {
+	color:#888;
+}
+.obs--runner-visibility a.icon-visible {
+	color:#0f7de4;
+}
+
+.obs--source-hidden .obs--runner-visibility a.icon-visible {
+	display:none;
+}
+
+.obs--source-visible .obs--runner-visibility a.icon-hidden {
+	display:none;
+}
 	</style>
 	
 <body class="obs--body">

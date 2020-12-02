@@ -76,6 +76,10 @@ $(document).ready(function(){
            
         },
 
+        basename: function(path) {
+            return path.replace(/.*\//, '');
+        },
+
         player_source_load: function(){
             /*Object
             message-id: "4"
@@ -101,8 +105,8 @@ $(document).ready(function(){
 
             
             $.each(player_sources, function(i,v){
-                tmp_html += '<div class="clr">';
-                    tmp_html += '<h4 style="margin-bottom:5px;clear:both;">'+v.display_name+'</h4>';
+                tmp_html += '<div class="obs--runner-item clr">';
+                    tmp_html += '<h4 style="margin-bottom:5px;clear:both;">'+v.display_name+' <div class="obs--runner-visibility"><a href="#" class="obs--runner-visibility-toggle icon-visible" data-source="'+v.source_name+'" data-val="0"><i class="fas fa-eye"></i></a><a href="#" class="obs--runner-visibility-toggle icon-hidden" data-source="'+v.source_name+'" data-val="1"><i class="fas fa-eye-slash"></i></a></div> <div class="obs--runner-actions"></h4>';
                     tmp_html += '<div class="row">';
                         tmp_html += '<div class="col-xs-6"><label>Region</label><br>'+tmp_dropdown.replace('{source}', v.source_name).replace(/{slug}/g, v.runner_slug)+'</div>';
                         tmp_html += '<div class="col-xs-6"><label>Slug</label><br><input class="obs--runner-slug" value="'+v.runner_slug+'"></div>';
@@ -116,12 +120,55 @@ $(document).ready(function(){
             obs_helper.player_source_refresh_selected();
 
             $(document).on('change', '.obs--update-source-select', obs_helper.player_source_update_input);
-            $(document).on('keyup', '.obs--runner-slug', obs_helper.player_source_update_slug);
+            $(document).on('keyup', '.obs--runner-slug', obs_helper.player_source_slug_keyup);
+            $(document).on('click', '.obs--runner-apply', obs_helper.player_source_update_slug);
+            $(document).on('click', '.obs--runner-cancel', obs_helper.player_source_update_cancel);
+            $(document).on('click', '.obs--runner-visibility-toggle', obs_helper.player_source_visibility_toggle);
+        },
+
+        player_source_visibility_toggle: function(e){
+            e.preventDefault();
+            var tmp_src = $(this).data('source');
+            var tmp_val = $(this).data('val');
+            var tmp_runner_item = $(this).closest('.obs--runner-item');
+
+            if(tmp_val){
+                obs.send('SetSceneItemProperties', {
+                    'item': tmp_src,
+                    'visible': true
+                });
+                tmp_runner_item.removeClass('obs--source-hidden').addClass('obs--source-visible');
+            }
+            else{
+                obs.send('SetSceneItemProperties', {
+                    'item': tmp_src,
+                    'visible': false
+                });
+                tmp_runner_item.removeClass('obs--source-visible').addClass('obs--source-hidden');
+            }
+
+        },
+
+        player_source_slug_keyup: function(){
+            obs_helper.player_source_changed($(this).closest('.obs--runner-item'));
+        },
+
+        player_source_changed: function(runner_item){
+            if(runner_item.find('.obs--runner-apply').length <= 0){
+                runner_item.find('.obs--runner-actions').html('<a href="#" class="obs--runner-apply" style="color:#0f7de4">[apply]</a> <a href="#" class="obs--runner-cancel" style="color:#888;">[cancel]</a>');
+            }
+        },
+
+        player_source_update_cancel: function(e){
+            e.preventDefault();
+            obs_helper.player_source_refresh_selected();
+            $(this).closest('.obs--runner-actions').html('');
         },
 
         player_source_update_slug: function(e){
-            var tmp_slug = $(this).val();
-            var tmp_element = $(this).closest('.row').find('.obs--update-source-select');
+            e.preventDefault();
+            var tmp_slug = $(this).closest('.obs--runner-item').find('.obs--runner-slug').val();
+            var tmp_element = $(this).closest('.obs--runner-item').find('.obs--update-source-select');
             tmp_element.find('option').each(function(i,v){
                 var tmp_og = $(this).data('og');
                 if(tmp_og != undefined){
@@ -129,36 +176,77 @@ $(document).ready(function(){
                 }
                 
             });
+            //this is a ape way to do this, we will fix later just hacking together for now
+            tmp_element.data('action','apply');
             tmp_element.trigger('change');
-            obs_helper.player_source_refresh_selected();
+            $(this).closest('.obs--runner-actions').html('');
         },
 
         player_source_update_input: function(e){
             e.preventDefault();
+            
             var tmp_src = $(this).data('source');
             var tmp_input = $(this).val();
-            if(tmp_src != ''){
-                obs.send('SetSourceSettings', {
-                    'sourceName': tmp_src,
-                    'sourceSettings': {input: tmp_input}
-                }).then(function(data){
-                    //console.log(data);
-                });
+            var tmp_action = $(this).data('action');
+
+            if(tmp_action == 'apply'){
+                if(tmp_src != ''){
+                    obs.send('SetSourceSettings', {
+                        'sourceName': tmp_src,
+                        'sourceSettings': {input: tmp_input}
+                    }).then(function(data){
+                        obs_helper.player_source_refresh_selected();
+                        //console.log(data);
+                    });
+                    $(this).data('action','');
+                }
             }
+            else{
+                obs_helper.player_source_changed($(this).closest('.obs--runner-item'));
+            }
+
         },
 
         player_source_refresh_selected: function(){
             $('.obs--update-source-select').each(function(i,v){
                 var tmp_src = $(this).data('source');
                 var tmp_element = $(this);
+                var tmp_runner_item = $(this).closest('.obs--runner-item');
+
+
                 obs.send('GetSourceSettings', {
                     'sourceName': tmp_src,
                 }).then(function(data){
                     try {
+                        console.log(data);
+                        
+
+                        var tmp_slug = obs_helper.basename(data.sourceSettings.input);
+                        tmp_element.find('option').each(function(i,v){
+                            var tmp_og = $(this).data('og');
+                            if(tmp_og != undefined){
+                                $(this).val(tmp_og+tmp_slug);
+                            }
+                            
+                        });
+
                         tmp_element.val(data.sourceSettings.input);
+                        tmp_runner_item.find('.obs--runner-slug').val(tmp_slug);
                     }
                     catch(e) {}
                 });
+
+                obs.send('GetSceneItemProperties', {
+                    'item': tmp_src,
+                }).then(function(data){
+                    if(data.visible){
+                        tmp_runner_item.removeClass('obs--source-hidden').addClass('obs--source-visible');
+                    }
+                    else{
+                        tmp_runner_item.removeClass('obs--source-visible').addClass('obs--source-hidden');
+                    }
+                });
+
             });
         },
 
