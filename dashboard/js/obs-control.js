@@ -455,6 +455,7 @@ $(document).ready(function(){
 
         scene_switched: function(d){
             obs_helper.get_sources();
+            obs_helper.player_source_refresh_selected();
         },
 
         connection_opened: function(d){
