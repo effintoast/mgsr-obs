@@ -53,7 +53,7 @@
 }
 
 .obs--runner-visibility {
-	display:inline-block;
+	display:none;
 }
 .obs--runner-visibility a {
 	color:#888;
@@ -65,7 +65,12 @@
 .obs--source-hidden .obs--runner-visibility a.icon-visible {
 	display:none;
 }
-
+.obs--source-hidden .obs--runner-visibility {
+	display:inline-block;
+}
+.obs--source-visible .obs--runner-visibility {
+	display:inline-block;
+}
 .obs--source-visible .obs--runner-visibility a.icon-hidden {
 	display:none;
 }

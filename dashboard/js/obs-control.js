@@ -147,6 +147,8 @@ $(document).ready(function(){
                 tmp_runner_item.removeClass('obs--source-visible').addClass('obs--source-hidden');
             }
 
+            obs_helper.get_sources();
+
         },
 
         player_source_slug_keyup: function(){
@@ -248,6 +250,7 @@ $(document).ready(function(){
                 });
 
             });
+            
         },
 
         set_status: function(status){
