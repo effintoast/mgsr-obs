@@ -238,6 +238,8 @@ $(document).ready(function(){
                     catch(e) {}
                 });
 
+                tmp_runner_item.removeClass('obs--source-hidden').removeClass('obs--source-visible');
+                
                 obs.send('GetSceneItemProperties', {
                     'item': tmp_src,
                 }).then(function(data){
