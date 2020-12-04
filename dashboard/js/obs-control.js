@@ -4,10 +4,11 @@ $(document).ready(function(){
     const obs = new OBSWebSocket();
     
     //localhost:4444
-    var obs_host = 'localhost:4444';
-    var obs_password = '';
-    var obs_autoconnect = false;
-    var obs_hide_host_fields = false;
+    var obs_host = (nodecg.bundleConfig.obs_host != undefined) ? nodecg.bundleConfig.obs_host : 'localhost:4444';
+    var obs_password = (nodecg.bundleConfig.obs_password != undefined) ? nodecg.bundleConfig.obs_password : '';
+    var obs_autoconnect = (nodecg.bundleConfig.obs_autoconnect != undefined) ? nodecg.bundleConfig.obs_autoconnect : false;
+    var obs_hide_host_fields = (nodecg.bundleConfig.obs_hide_host_fields != undefined) ? nodecg.bundleConfig.obs_hide_host_fields : false;
+
 
     var player_sources = [
         {source_name: "P1", display_name: "Player 1", runner_slug: 'mgsr-1'},
@@ -16,11 +17,21 @@ $(document).ready(function(){
         {source_name: "P4", display_name: "Player 4", runner_slug: 'mgsr-4'}
     ];
 
+    if(nodecg.bundleConfig.player_sources != undefined){
+        console.log('using ps');
+        player_sources = nodecg.bundleConfig.player_sources;
+    }
+
     var player_sources_values = [
         {source_url: "rtmp://rtmp.metalgearspeedrunners.com/runners/", display_name: "NA RTMP"},
         {source_url: "rtmp://eu-rtmp.metalgearspeedrunners.com/runners/", display_name: "EU RTMP"},
         {source_url: "rtmp://oce-rtmp.metalgearspeedrunners.com/runners/", display_name: "OCE RTMP"}
     ];
+
+    if(nodecg.bundleConfig.player_sources_values != undefined){
+        console.log('using psv');
+        player_sources_values = nodecg.bundleConfig.player_sources_values;
+    }
 
 
     var obs_helper = {
