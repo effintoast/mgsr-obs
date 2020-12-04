@@ -19,7 +19,14 @@
             "file": "obs-control.html",
             "width": 3,
             "height": 4
-            }
+            },
+            {
+              "name": "streamlabs-donations",
+              "title": "Donations",
+              "file": "streamlabs-donations.html",
+              "width": 3,
+              "height": 4
+              }
         ]
     }
   }
